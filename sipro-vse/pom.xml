@@ -29,7 +29,8 @@
         <dependency>
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
-            <version>13.0.7</version>
+           <version>13.0.7</version>
+           <classifier>jakarta</classifier>
         </dependency>
 
         <!-- MySQL JDBC driver -->
