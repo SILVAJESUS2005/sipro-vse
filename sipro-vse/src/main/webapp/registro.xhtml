@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <h:body>
+        <h:form id="registroForm">
+            <p:messages id="msgs" showDetail="true" closable="true"/>
+            <p:panel header="Registro de usuario" style="width:400px; margin:auto; margin-top:50px">
+                <h:panelGrid columns="2" cellpadding="5">
+                    <h:outputLabel for="nombre" value="Nombre completo:" />
+                    <p:inputText id="nombre" value="#{registroBean.miembro.nombre}" required="true" label="Nombre completo" requiredMessage="Por favor ingresa tu nombre"/>
+
+                    <h:outputLabel for="correo" value="Correo electrónico:" />
+                    <p:inputText id="correo" value="#{registroBean.miembro.correo}" required="true" label="Correo electrónico" requiredMessage="El correo es obligatorio">
+                        <f:validateRegex pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" />
+                    </p:inputText>
+
+                    <h:outputLabel for="contrasena" value="Contraseña:" />
+                    <p:password id="contrasena" value="#{registroBean.miembro.contrasena}" required="true" label="Contraseña" requiredMessage="La contraseña es obligatoria">
+                        <f:validateLength minimum="6"/>
+                    </p:password>
+
+                    <h:outputLabel for="rol" value="Rol:" />
+                    <p:selectOneMenu id="rol" value="#{registroBean.miembro.rol}" required="true" label="Rol" requiredMessage="Selecciona un rol">
+                        <f:selectItems value="#{registroBean.roles}" />
+                    </p:selectOneMenu>
+                </h:panelGrid>
+
+                <!-- Mensajes de validación por campo, fuera del panelGrid para no romper el layout -->
+                <p:message for="nombre"/>
+                <p:message for="correo"/>
+                <p:message for="contrasena"/>
+                <p:message for="rol"/>
+
+                <p:commandButton value="Registrar"
+                                 action="#{registroBean.registrar}"
+                                 update="registroForm msgs"
+                                 style="margin-top:10px; width:100%;"/>
+            </p:panel>
+        </h:form>
+    </h:body>
+</html>
