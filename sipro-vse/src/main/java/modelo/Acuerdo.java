@@ -6,16 +6,25 @@ import java.util.Date;
 @Entity
 public class Acuerdo {
 
-    @Id
+ @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_Acuerdo") // <- mapeo explícito
     private int ID_Acuerdo;
 
+    @Column(name = "Nombre_Proyecto")
     private String nombreProyecto;
-    private Date fechaFirma;
-    private String cliente;
-    private String entregablesContratados;
-    private String condicionesGenerales;
 
+    @Column(name = "Fecha_Firma")
+    private Date fechaFirma;
+
+    @Column(name = "Cliente")
+    private String cliente;
+
+    @Column(name = "Entregables_Contratados")
+    private String entregablesContratados;
+
+    @Column(name = "Condiciones_Generales")
+    private String condicionesGenerales;
     public int getID_Acuerdo() {
         return ID_Acuerdo;
     }
