@@ -35,6 +35,9 @@ public class RegistroBean implements Serializable {
                 return null;
             }
 
+            // Asignar rol por defecto
+            miembro.setRol(Rol.INTERESADO);
+
             em.persist(miembro);
             miembro = new Miembro(); // Limpiar formulario
 

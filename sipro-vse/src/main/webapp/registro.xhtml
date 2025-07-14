@@ -21,18 +21,11 @@
                     <p:password id="contrasena" value="#{registroBean.miembro.contrasena}" required="true" label="Contraseña" requiredMessage="La contraseña es obligatoria">
                         <f:validateLength minimum="6"/>
                     </p:password>
-
-                    <h:outputLabel for="rol" value="Rol:" />
-                    <p:selectOneMenu id="rol" value="#{registroBean.miembro.rol}" required="true" label="Rol" requiredMessage="Selecciona un rol">
-                        <f:selectItems value="#{registroBean.roles}" />
-                    </p:selectOneMenu>
                 </h:panelGrid>
 
-                <!-- Mensajes de validación por campo, fuera del panelGrid para no romper el layout -->
                 <p:message for="nombre"/>
                 <p:message for="correo"/>
                 <p:message for="contrasena"/>
-                <p:message for="rol"/>
 
                 <p:commandButton value="Registrar"
                                  action="#{registroBean.registrar}"
