@@ -1,12 +1,13 @@
 package modelo;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-public class Acuerdo {
+public class Acuerdo implements Serializable{
 
- @Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_Acuerdo") // <- mapeo explícito
     private int ID_Acuerdo;
@@ -25,6 +26,7 @@ public class Acuerdo {
 
     @Column(name = "Condiciones_Generales")
     private String condicionesGenerales;
+
     public int getID_Acuerdo() {
         return ID_Acuerdo;
     }
@@ -72,5 +74,16 @@ public class Acuerdo {
     public void setCondicionesGenerales(String condicionesGenerales) {
         this.condicionesGenerales = condicionesGenerales;
     }
-    
+    @ManyToOne
+    @JoinColumn(name = "id_proyecto") // Asegúrate que este campo existe en la tabla Acuerdo
+    private Proyecto proyecto;
+
+    // getters y setters para 'proyecto'
+    public Proyecto getProyecto() {
+        return proyecto;
+    }
+
+    public void setProyecto(Proyecto proyecto) {
+        this.proyecto = proyecto;
+    }
 }

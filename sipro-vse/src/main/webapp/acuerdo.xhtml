@@ -14,14 +14,13 @@
             <p:panel header="Acuerdos" style="margin-bottom:20px;">
                 <p:commandButton value="Nuevo Acuerdo"
                                  icon="pi pi-plus"
-                                 onclick="PF('dlgAcuerdo').show();"
                                  actionListener="#{acuerdoBean.nuevo}"
                                  update=":formAcuerdo:acuerdoDialog"
+                                 onclick="PF('dlgAcuerdo').show();"
                                  styleClass="ui-button-success" />
             </p:panel>
 
             <p:dataTable value="#{acuerdoBean.acuerdos}" var="a" paginator="true" rows="10">
-                <!-- columnas -->
                 <p:column headerText="Proyecto">
                     #{a.nombreProyecto}
                 </p:column>
@@ -37,39 +36,55 @@
                     <p:commandButton icon="pi pi-pencil" title="Editar"
                                      actionListener="#{acuerdoBean.editar(a)}"
                                      update=":formAcuerdo:acuerdoDialog"
-                                     onclick="PF('dlgAcuerdo').show();"
+                                     oncomplete="PF('dlgAcuerdo').show();"
                                      styleClass="ui-button-warning" />
                     <p:commandButton icon="pi pi-trash" title="Eliminar"
-                                     actionListener="#{acuerdoBean.eliminar(a)}"
-                                     update=":formAcuerdo"
-                                     styleClass="ui-button-danger"
-                                     onclick="return confirm('¿Eliminar este acuerdo?');"/>
+                                     actionListener="#{acuerdoBean.prepararEliminar(a)}"
+                                     update=":formAcuerdo:confirmDialog"
+                                     oncomplete="PF('confirmDialog').show();"
+                                     styleClass="ui-button-danger" />
                 </p:column>
             </p:dataTable>
 
             <!-- Dialogo para agregar/editar -->
-            <p:dialog id="acuerdoDialog" widgetVar="dlgAcuerdo" modal="true" header="Acuerdo" resizable="false" width="600">
+            <p:dialog id="acuerdoDialog" widgetVar="dlgAcuerdo" modal="true" header="#{acuerdoBean.modoEdicion ? 'Editar Acuerdo' : 'Nuevo Acuerdo'}"
+                      resizable="false" width="600">
                 <h:panelGrid columns="2" cellpadding="6" style="width:100%;">
                     <h:outputLabel for="nombreProyecto" value="Nombre del proyecto:" />
-                    <p:inputText id="nombreProyecto" value="#{acuerdoBean.acuerdo.nombreProyecto}" required="true" maxlength="150" style="width:100%;" />
+                    <p:inputText id="nombreProyecto" value="#{acuerdoBean.acuerdoSeleccionado.nombreProyecto}" required="true" maxlength="150" style="width:100%;" />
 
                     <h:outputLabel for="fechaFirma" value="Fecha de firma:" />
-                    <p:calendar id="fechaFirma" value="#{acuerdoBean.acuerdo.fechaFirma}" pattern="yyyy-MM-dd" mask="true" navigator="true" showButtonPanel="true" style="width:100%;" />
+                    <p:calendar id="fechaFirma" value="#{acuerdoBean.acuerdoSeleccionado.fechaFirma}" pattern="yyyy-MM-dd" mask="true" navigator="true" showButtonPanel="true" style="width:100%;" />
 
                     <h:outputLabel for="cliente" value="Cliente:" />
-                    <p:inputText id="cliente" value="#{acuerdoBean.acuerdo.cliente}" maxlength="100" style="width:100%;" />
+                    <p:inputText id="cliente" value="#{acuerdoBean.acuerdoSeleccionado.cliente}" maxlength="100" style="width:100%;" />
 
                     <h:outputLabel for="entregables" value="Entregables contratados:" />
-                    <p:inputTextarea id="entregables" value="#{acuerdoBean.acuerdo.entregablesContratados}" autoResize="true" rows="3" style="width:100%;" />
+                    <p:inputTextarea id="entregables" value="#{acuerdoBean.acuerdoSeleccionado.entregablesContratados}" autoResize="true" rows="3" style="width:100%;" />
 
                     <h:outputLabel for="condiciones" value="Condiciones generales:" />
-                    <p:inputTextarea id="condiciones" value="#{acuerdoBean.acuerdo.condicionesGenerales}" autoResize="true" rows="3" style="width:100%;" />
+                    <p:inputTextarea id="condiciones" value="#{acuerdoBean.acuerdoSeleccionado.condicionesGenerales}" autoResize="true" rows="3" style="width:100%;" />
                 </h:panelGrid>
                 <f:facet name="footer">
-                    <p:commandButton value="Guardar" actionListener="#{acuerdoBean.guardar}" update=":formAcuerdo" onclick="PF('dlgAcuerdo').hide();" styleClass="ui-button-success" />
+                    <p:commandButton value="#{acuerdoBean.modoEdicion ? 'Guardar cambios' : 'Guardar'}"
+                                     actionListener="#{acuerdoBean.guardarOActualizar}"
+                                     update=":formAcuerdo"
+                                     oncomplete="PF('dlgAcuerdo').hide();"
+                                     styleClass="ui-button-success" />
                     <p:commandButton value="Cancelar" onclick="PF('dlgAcuerdo').hide();" type="button" styleClass="ui-button-secondary" />
                 </f:facet>
             </p:dialog>
+
+            <!-- Dialogo de confirmacion para eliminar -->
+            <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" header="Eliminar acuerdo">
+                <h:panelGroup layout="block" style="margin-bottom:1em;">
+                    <i class="pi pi-exclamation-triangle" style="color:orange; font-size:2em; vertical-align:middle;" />
+                    <span style="margin-left:10px;">¿Estás seguro de eliminar este acuerdo?</span>
+                </h:panelGroup>
+                <p:commandButton value="Sí, eliminar" actionListener="#{acuerdoBean.eliminar}"
+                                 update=":formAcuerdo" oncomplete="PF('confirmDialog').hide();" styleClass="ui-button-danger" />
+                <p:commandButton value="Cancelar" onclick="PF('confirmDialog').hide();" type="button" styleClass="ui-button-secondary" />
+            </p:confirmDialog>
         </h:form>
     </h:body>
 </html>

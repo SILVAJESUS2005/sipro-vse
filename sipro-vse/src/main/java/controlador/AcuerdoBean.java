@@ -20,7 +20,9 @@ public class AcuerdoBean implements Serializable {
     private EntityManager em;
 
     private List<Acuerdo> acuerdos;
-    private Acuerdo acuerdo = new Acuerdo();
+    private Acuerdo acuerdoSeleccionado;
+    private Acuerdo acuerdoAEliminar;
+    private boolean modoEdicion = false;
 
     @PostConstruct
     public void init() {
@@ -31,51 +33,98 @@ public class AcuerdoBean implements Serializable {
         acuerdos = em.createQuery("SELECT a FROM Acuerdo a ORDER BY a.fechaFirma DESC", Acuerdo.class).getResultList();
     }
 
-    @Transactional
-    public void guardar() {
-        try {
-            if (acuerdo.getID_Acuerdo() == 0) {
-                em.persist(acuerdo);
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo creado", null));
-            } else {
-                em.merge(acuerdo);
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo actualizado", null));
-            }
-            acuerdo = new Acuerdo();
-            cargarAcuerdos();
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error al guardar", e.getMessage()));
+    public void nuevo() {
+        acuerdoSeleccionado = new Acuerdo();
+        modoEdicion = false;
+    }
+
+    public void guardarOActualizar() {
+        if (modoEdicion) {
+            actualizar();
+        } else {
+            guardar();
         }
     }
 
-    public void nuevo() {
-        acuerdo = new Acuerdo();
-    }
-
     public void editar(Acuerdo a) {
-        // Opcional: puedes clonar si no quieres editar directamente en la tabla
-        this.acuerdo = a;
+        acuerdoSeleccionado = a;
+        modoEdicion = true;
     }
 
     @Transactional
-    public void eliminar(Acuerdo a) {
+    public void guardar() {
         try {
-            Acuerdo toDelete = em.merge(a);
-            em.remove(toDelete);
+            em.persist(acuerdoSeleccionado);
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo eliminado", null));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo creado", null));
             cargarAcuerdos();
+            acuerdoSeleccionado = null;
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "No se pudo eliminar", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error al guardar", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    public void actualizar() {
+        try {
+            em.merge(acuerdoSeleccionado);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo actualizado", null));
+            cargarAcuerdos();
+            acuerdoSeleccionado = null;
+            modoEdicion = false;
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error al actualizar", e.getMessage()));
+        }
+    }
+
+    public void prepararEliminar(Acuerdo a) {
+        acuerdoAEliminar = a;
+    }
+
+    @Transactional
+    public void eliminar() {
+        try {
+            Acuerdo toDelete = em.merge(acuerdoAEliminar);
+            em.remove(toDelete);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo eliminado", null));
+            cargarAcuerdos();
+            acuerdoAEliminar = null;
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "No se pudo eliminar", e.getMessage()));
         }
     }
 
     // Getters y Setters
-    public List<Acuerdo> getAcuerdos() { return acuerdos; }
-    public Acuerdo getAcuerdo() { return acuerdo; }
-    public void setAcuerdo(Acuerdo acuerdo) { this.acuerdo = acuerdo; }
+    public List<Acuerdo> getAcuerdos() {
+        return acuerdos;
+    }
+
+    public Acuerdo getAcuerdoSeleccionado() {
+        return acuerdoSeleccionado;
+    }
+
+    public void setAcuerdoSeleccionado(Acuerdo acuerdoSeleccionado) {
+        this.acuerdoSeleccionado = acuerdoSeleccionado;
+    }
+
+    public boolean isModoEdicion() {
+        return modoEdicion;
+    }
+
+    public void setModoEdicion(boolean modoEdicion) {
+        this.modoEdicion = modoEdicion;
+    }
+
+    public Acuerdo getAcuerdoAEliminar() {
+        return acuerdoAEliminar;
+    }
+
+    public void setAcuerdoAEliminar(Acuerdo acuerdoAEliminar) {
+        this.acuerdoAEliminar = acuerdoAEliminar;
+    }
 }
