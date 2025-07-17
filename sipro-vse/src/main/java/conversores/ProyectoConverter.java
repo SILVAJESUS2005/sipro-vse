@@ -17,11 +17,11 @@ public class ProyectoConverter implements Converter<Proyecto> {
     @Override
     public Proyecto getAsObject(FacesContext context, UIComponent component, String value) {
         if (value == null || value.isEmpty()) return null;
-        return em.find(Proyecto.class, Long.valueOf(value));
+        return em.find(Proyecto.class, Integer.valueOf(value));
     }
 
     @Override
     public String getAsString(FacesContext context, UIComponent component, Proyecto proyecto) {
-        return (proyecto == null || proyecto.getId() == null) ? "" : String.valueOf(proyecto.getId());
+        return (proyecto == null) ? "" : String.valueOf(proyecto.getID_Proyecto());
     }
 }

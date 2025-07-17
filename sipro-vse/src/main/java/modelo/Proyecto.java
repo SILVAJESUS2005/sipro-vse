@@ -14,10 +14,7 @@ public class Proyecto {
     private String nombre;
     private Date fechaInicio;
     private Date fechaFin;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-        @OneToMany(mappedBy = "proyecto")
+
     private List<Acuerdo> acuerdos;
     @ManyToOne
     private Acuerdo acuerdo;
@@ -28,7 +25,6 @@ public class Proyecto {
     public int getID_Proyecto() {
         return ID_Proyecto;
     }
-    public Long getId() { return id; }
  
     public void setID_Proyecto(int ID_Proyecto) {
         this.ID_Proyecto = ID_Proyecto;
