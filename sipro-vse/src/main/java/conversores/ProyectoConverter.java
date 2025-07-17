@@ -4,20 +4,17 @@ import jakarta.faces.convert.FacesConverter;
 import jakarta.faces.convert.Converter;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.component.UIComponent;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import modelo.Proyecto;
 
-@FacesConverter(value = "proyectoConverter", managed = true)
+@FacesConverter(value = "proyectoConverter")
 public class ProyectoConverter implements Converter<Proyecto> {
-
-    @Inject
-    private EntityManager em;
 
     @Override
     public Proyecto getAsObject(FacesContext context, UIComponent component, String value) {
-        if (value == null || value.isEmpty()) return null;
-        return em.find(Proyecto.class, Integer.valueOf(value));
+        // Este método no puede recuperar la entidad solo con el ID.
+        // Debes implementar la lógica en tu bean JSF asociado (por ejemplo, ProyectoBean)
+        // Aquí puedes lanzar una excepción o retornar null para evitar errores.
+        throw new UnsupportedOperationException("La recuperación del objeto Proyecto debe hacerse en el bean JSF.");
     }
 
     @Override
