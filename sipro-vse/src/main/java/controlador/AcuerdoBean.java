@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import modelo.Acuerdo;
+import modelo.Proyecto;
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class AcuerdoBean implements Serializable {
     private EntityManager em;
 
     private List<Acuerdo> acuerdos;
+    private List<Proyecto> proyectosDisponibles;
     private Acuerdo acuerdoSeleccionado;
     private Acuerdo acuerdoAEliminar;
     private boolean modoEdicion = false;
@@ -27,6 +29,7 @@ public class AcuerdoBean implements Serializable {
     @PostConstruct
     public void init() {
         cargarAcuerdos();
+        proyectosDisponibles = em.createQuery("SELECT p FROM Proyecto p", Proyecto.class).getResultList();
     }
 
     public void cargarAcuerdos() {
@@ -36,14 +39,6 @@ public class AcuerdoBean implements Serializable {
     public void nuevo() {
         acuerdoSeleccionado = new Acuerdo();
         modoEdicion = false;
-    }
-
-    public void guardarOActualizar() {
-        if (modoEdicion) {
-            actualizar();
-        } else {
-            guardar();
-        }
     }
 
     public void editar(Acuerdo a) {
@@ -99,6 +94,14 @@ public class AcuerdoBean implements Serializable {
         }
     }
 
+    public void guardarOActualizar() {
+        if (modoEdicion) {
+            actualizar();
+        } else {
+            guardar();
+        }
+    }
+
     // Getters y Setters
     public List<Acuerdo> getAcuerdos() {
         return acuerdos;
@@ -126,5 +129,9 @@ public class AcuerdoBean implements Serializable {
 
     public void setAcuerdoAEliminar(Acuerdo acuerdoAEliminar) {
         this.acuerdoAEliminar = acuerdoAEliminar;
+    }
+
+    public List<Proyecto> getProyectosDisponibles() {
+        return proyectosDisponibles;
     }
 }

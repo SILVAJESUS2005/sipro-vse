@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-public class Acuerdo implements Serializable{
+public class Acuerdo implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +26,17 @@ public class Acuerdo implements Serializable{
 
     @Column(name = "Condiciones_Generales")
     private String condicionesGenerales;
+    @ManyToOne
+    @JoinColumn(name = "id_proyecto")
+    private Proyecto proyecto;
+
+    public Proyecto getProyecto() {
+        return proyecto;
+    }
+
+    public void setProyecto(Proyecto proyecto) {
+        this.proyecto = proyecto;
+    }
 
     public int getID_Acuerdo() {
         return ID_Acuerdo;
@@ -74,16 +85,5 @@ public class Acuerdo implements Serializable{
     public void setCondicionesGenerales(String condicionesGenerales) {
         this.condicionesGenerales = condicionesGenerales;
     }
-    @ManyToOne
-    @JoinColumn(name = "id_proyecto") // Asegúrate que este campo existe en la tabla Acuerdo
-    private Proyecto proyecto;
 
-    // getters y setters para 'proyecto'
-    public Proyecto getProyecto() {
-        return proyecto;
-    }
-
-    public void setProyecto(Proyecto proyecto) {
-        this.proyecto = proyecto;
-    }
 }
