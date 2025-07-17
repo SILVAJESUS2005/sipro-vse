@@ -12,20 +12,26 @@ public class Proyecto {
     private int ID_Proyecto;
 
     private String nombre;
+
+    @Column(name = "Fecha_Inicio")
     private Date fechaInicio;
+
+    @Column(name = "Fecha_Fin")
     private Date fechaFin;
 
     private List<Acuerdo> acuerdos;
     @ManyToOne
+    @JoinColumn(name = "ID_Acuerdo")
     private Acuerdo acuerdo;
 
     @ManyToOne
+    @JoinColumn(name = "ID_Responsable")
     private Miembro responsable;
 
     public int getID_Proyecto() {
         return ID_Proyecto;
     }
- 
+
     public void setID_Proyecto(int ID_Proyecto) {
         this.ID_Proyecto = ID_Proyecto;
     }
@@ -69,5 +75,5 @@ public class Proyecto {
     public void setResponsable(Miembro responsable) {
         this.responsable = responsable;
     }
-        
+
 }

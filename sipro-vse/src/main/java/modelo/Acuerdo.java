@@ -5,20 +5,22 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
+@Table(name = "Acuerdo")
 public class Acuerdo implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_Acuerdo") // <- mapeo explícito
-    private int ID_Acuerdo;
+    @Column(name = "ID_Acuerdo")
+    private Integer idAcuerdo;
 
-    @Column(name = "Nombre_Proyecto")
+    @Column(name = "Nombre_Proyecto", nullable = false, unique = true)
     private String nombreProyecto;
 
     @Column(name = "Fecha_Firma")
+    @Temporal(TemporalType.DATE)
     private Date fechaFirma;
 
-    @Column(name = "Cliente")
+    @Column(name = "Cliente", nullable = false)
     private String cliente;
 
     @Column(name = "Entregables_Contratados")
@@ -26,24 +28,19 @@ public class Acuerdo implements Serializable {
 
     @Column(name = "Condiciones_Generales")
     private String condicionesGenerales;
+
+    // Relación con Proyecto
     @ManyToOne
     @JoinColumn(name = "id_proyecto")
     private Proyecto proyecto;
 
-    public Proyecto getProyecto() {
-        return proyecto;
+    // Getters y setters
+    public Integer getIdAcuerdo() {
+        return idAcuerdo;
     }
 
-    public void setProyecto(Proyecto proyecto) {
-        this.proyecto = proyecto;
-    }
-
-    public int getID_Acuerdo() {
-        return ID_Acuerdo;
-    }
-
-    public void setID_Acuerdo(int ID_Acuerdo) {
-        this.ID_Acuerdo = ID_Acuerdo;
+    public void setIdAcuerdo(Integer idAcuerdo) {
+        this.idAcuerdo = idAcuerdo;
     }
 
     public String getNombreProyecto() {
@@ -86,4 +83,11 @@ public class Acuerdo implements Serializable {
         this.condicionesGenerales = condicionesGenerales;
     }
 
+    public Proyecto getProyecto() {
+        return proyecto;
+    }
+
+    public void setProyecto(Proyecto proyecto) {
+        this.proyecto = proyecto;
+    }
 }

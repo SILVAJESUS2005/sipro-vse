@@ -1,137 +1,95 @@
 package controlador;
 
-import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Named;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
-import jakarta.faces.view.ViewScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import jakarta.inject.Inject;
+import java.io.Serializable;
+import java.util.Date;
 import modelo.Acuerdo;
 import modelo.Proyecto;
-import java.io.Serializable;
-import java.util.List;
+import modelo.servicio.AcuerdoService;
 
 @Named
-@ViewScoped
+@SessionScoped
 public class AcuerdoBean implements Serializable {
 
-    @PersistenceContext(unitName = "siproPU")
-    private EntityManager em;
+    private Acuerdo acuerdo = new Acuerdo();
 
-    private List<Acuerdo> acuerdos;
-    private List<Proyecto> proyectosDisponibles;
-    private Acuerdo acuerdoSeleccionado;
-    private Acuerdo acuerdoAEliminar;
-    private boolean modoEdicion = false;
+    @Inject
+    private modelo.servicio.AcuerdoService acuerdoService;
 
-    @PostConstruct
-    public void init() {
-        cargarAcuerdos();
-        proyectosDisponibles = em.createQuery("SELECT p FROM Proyecto p", Proyecto.class).getResultList();
-    }
+    // Si tienes una lista de proyectos para seleccionar en el formulario
+    private Proyecto proyectoSeleccionado;
 
-    public void cargarAcuerdos() {
-        acuerdos = em.createQuery("SELECT a FROM Acuerdo a ORDER BY a.fechaFirma DESC", Acuerdo.class).getResultList();
-    }
-
-    public void nuevo() {
-        acuerdoSeleccionado = new Acuerdo();
-        modoEdicion = false;
-    }
-
-    public void editar(Acuerdo a) {
-        acuerdoSeleccionado = a;
-        modoEdicion = true;
-    }
-
-    @Transactional
-    public void guardar() {
-        try {
-            em.persist(acuerdoSeleccionado);
+    public String guardarAcuerdo() {
+        // 1. Proyecto seleccionado
+        if (acuerdo.getProyecto() == null) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo creado", null));
-            cargarAcuerdos();
-            acuerdoSeleccionado = null;
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error al guardar", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes seleccionar un proyecto.", null));
+            return null;
         }
-    }
 
-    @Transactional
-    public void actualizar() {
-        try {
-            em.merge(acuerdoSeleccionado);
+        // 2. Nombre del acuerdo no vacío y único
+        if (acuerdo.getNombreProyecto() == null || acuerdo.getNombreProyecto().trim().isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo actualizado", null));
-            cargarAcuerdos();
-            acuerdoSeleccionado = null;
-            modoEdicion = false;
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error al actualizar", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre del acuerdo no puede estar vacío.", null));
+            return null;
         }
-    }
-
-    public void prepararEliminar(Acuerdo a) {
-        acuerdoAEliminar = a;
-    }
-
-    @Transactional
-    public void eliminar() {
-        try {
-            Acuerdo toDelete = em.merge(acuerdoAEliminar);
-            em.remove(toDelete);
+        // Verifica unicidad
+        if (acuerdoService.existeNombre(acuerdo.getNombreProyecto())) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo eliminado", null));
-            cargarAcuerdos();
-            acuerdoAEliminar = null;
-        } catch (Exception e) {
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ya existe un acuerdo con ese nombre.", null));
+            return null;
+        }
+
+        // 3. Fecha de firma válida
+        if (acuerdo.getFechaFirma() == null) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "No se pudo eliminar", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes ingresar la fecha de firma.", null));
+            return null;
         }
-    }
-
-    public void guardarOActualizar() {
-        if (modoEdicion) {
-            actualizar();
-        } else {
-            guardar();
+        if (acuerdo.getFechaFirma().after(new Date())) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "La fecha de firma no puede ser futura.", null));
+            return null;
         }
+
+        // 4. Cliente no vacío
+        if (acuerdo.getCliente() == null || acuerdo.getCliente().trim().isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El cliente no puede estar vacío.", null));
+            return null;
+        }
+
+        // Guardar
+        acuerdoService.guardar(acuerdo);
+
+        FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo guardado exitosamente.", null));
+        // Redirige o limpia el formulario según tu flujo
+        acuerdo = new Acuerdo();
+        return "lista-acuerdos.xhtml?faces-redirect=true";
     }
 
-    // Getters y Setters
-    public List<Acuerdo> getAcuerdos() {
-        return acuerdos;
+    // Getters y setters
+    public Acuerdo getAcuerdo() {
+        return acuerdo;
     }
 
-    public Acuerdo getAcuerdoSeleccionado() {
-        return acuerdoSeleccionado;
+    public void setAcuerdo(Acuerdo acuerdo) {
+        this.acuerdo = acuerdo;
     }
 
-    public void setAcuerdoSeleccionado(Acuerdo acuerdoSeleccionado) {
-        this.acuerdoSeleccionado = acuerdoSeleccionado;
+    public Proyecto getProyectoSeleccionado() {
+        return proyectoSeleccionado;
     }
 
-    public boolean isModoEdicion() {
-        return modoEdicion;
-    }
-
-    public void setModoEdicion(boolean modoEdicion) {
-        this.modoEdicion = modoEdicion;
-    }
-
-    public Acuerdo getAcuerdoAEliminar() {
-        return acuerdoAEliminar;
-    }
-
-    public void setAcuerdoAEliminar(Acuerdo acuerdoAEliminar) {
-        this.acuerdoAEliminar = acuerdoAEliminar;
-    }
-
-    public List<Proyecto> getProyectosDisponibles() {
-        return proyectosDisponibles;
+    public void setProyectoSeleccionado(Proyecto proyectoSeleccionado) {
+        this.proyectoSeleccionado = proyectoSeleccionado;
+        if (this.acuerdo != null) {
+            this.acuerdo.setProyecto(proyectoSeleccionado);
+        }
     }
 }
