@@ -7,73 +7,150 @@ import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import modelo.Acuerdo;
 import modelo.Proyecto;
 import modelo.servicio.AcuerdoService;
+import modelo.servicio.ProyectoService;
 
 @Named
 @SessionScoped
 public class AcuerdoBean implements Serializable {
 
     private Acuerdo acuerdo = new Acuerdo();
+    private Acuerdo acuerdoSeleccionado;
+    private Acuerdo acuerdoAEliminar;
+    private List<Acuerdo> acuerdos;
+    private List<Proyecto> proyectosDisponibles;
+
+    private Proyecto proyectoSeleccionado;
+    private boolean modoEdicion = false;
 
     @Inject
-    private modelo.servicio.AcuerdoService acuerdoService;
+    private AcuerdoService acuerdoService;
+    @Inject
+    private ProyectoService proyectoService; // Asegúrate de tener este servicio
 
-    // Si tienes una lista de proyectos para seleccionar en el formulario
-    private Proyecto proyectoSeleccionado;
-
-    public String guardarAcuerdo() {
-        // 1. Proyecto seleccionado
-        if (acuerdo.getProyecto() == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes seleccionar un proyecto.", null));
-            return null;
-        }
-
-        // 2. Nombre del acuerdo no vacío y único
-        if (acuerdo.getNombreProyecto() == null || acuerdo.getNombreProyecto().trim().isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre del acuerdo no puede estar vacío.", null));
-            return null;
-        }
-        // Verifica unicidad
-        if (acuerdoService.existeNombre(acuerdo.getNombreProyecto())) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ya existe un acuerdo con ese nombre.", null));
-            return null;
-        }
-
-        // 3. Fecha de firma válida
-        if (acuerdo.getFechaFirma() == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes ingresar la fecha de firma.", null));
-            return null;
-        }
-        if (acuerdo.getFechaFirma().after(new Date())) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "La fecha de firma no puede ser futura.", null));
-            return null;
-        }
-
-        // 4. Cliente no vacío
-        if (acuerdo.getCliente() == null || acuerdo.getCliente().trim().isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El cliente no puede estar vacío.", null));
-            return null;
-        }
-
-        // Guardar
-        acuerdoService.guardar(acuerdo);
-
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo guardado exitosamente.", null));
-        // Redirige o limpia el formulario según tu flujo
-        acuerdo = new Acuerdo();
-        return "lista-acuerdos.xhtml?faces-redirect=true";
+    public List<Acuerdo> getAcuerdos() {
+        acuerdos = acuerdoService.obtenerTodos();
+        return acuerdos;
     }
 
-    // Getters y setters
+    public boolean isModoEdicion() {
+        return modoEdicion;
+    }
+
+    public Acuerdo getAcuerdoSeleccionado() {
+        return acuerdoSeleccionado;
+    }
+
+    public void setAcuerdoSeleccionado(Acuerdo acuerdoSeleccionado) {
+        this.acuerdoSeleccionado = acuerdoSeleccionado;
+    }
+
+    // Nuevo acuerdo
+    public void nuevo() {
+        acuerdoSeleccionado = new Acuerdo();
+        modoEdicion = false;
+    }
+
+    // Editar acuerdo
+    public void editar(Acuerdo acuerdo) {
+        acuerdoSeleccionado = new Acuerdo();
+        // Copia los datos para edición
+        acuerdoSeleccionado.setIdAcuerdo(acuerdo.getIdAcuerdo());
+        acuerdoSeleccionado.setNombreProyecto(acuerdo.getNombreProyecto());
+        acuerdoSeleccionado.setFechaFirma(acuerdo.getFechaFirma());
+        acuerdoSeleccionado.setCliente(acuerdo.getCliente());
+        acuerdoSeleccionado.setEntregablesContratados(acuerdo.getEntregablesContratados());
+        acuerdoSeleccionado.setCondicionesGenerales(acuerdo.getCondicionesGenerales());
+        acuerdoSeleccionado.setProyecto(acuerdo.getProyecto());
+        modoEdicion = true;
+    }
+
+    // Prepara acuerdo para eliminar
+    public void prepararEliminar(Acuerdo acuerdo) {
+        acuerdoAEliminar = acuerdo;
+    }
+
+    public List<Proyecto> getProyectosDisponibles() {
+        if (proyectosDisponibles == null) {
+            proyectosDisponibles = proyectoService.obtenerTodos();
+        }
+        return proyectosDisponibles;
+    }
+
+    // Si necesitas buscar un proyecto por ID para el converter:
+    public Proyecto buscarProyectoPorId(int id) {
+        for (Proyecto p : getProyectosDisponibles()) {
+            if (p.getID_Proyecto() == id) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    // Elimina acuerdo seleccionado
+    public void eliminar() {
+        if (acuerdoAEliminar != null) {
+            acuerdoService.eliminar(acuerdoAEliminar);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo eliminado.", null));
+            acuerdos = null; // Recarga lista
+            acuerdoAEliminar = null;
+        }
+    }
+
+    // Guarda o actualiza acuerdo según modo
+    public void guardarOActualizar() {
+        // Validaciones igual que guardarAcuerdo
+        if (acuerdoSeleccionado.getProyecto() == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes seleccionar un proyecto.", null));
+            return;
+        }
+        if (acuerdoSeleccionado.getNombreProyecto() == null
+                || acuerdoSeleccionado.getNombreProyecto().trim().isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre no puede estar vacío.", null));
+            return;
+        }
+        // Si es nuevo, verifica unicidad
+        if (!modoEdicion && acuerdoService.existeNombre(acuerdoSeleccionado.getNombreProyecto())) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ya existe un acuerdo con ese nombre.", null));
+            return;
+        }
+        if (acuerdoSeleccionado.getFechaFirma() == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes ingresar la fecha de firma.", null));
+            return;
+        }
+        if (acuerdoSeleccionado.getFechaFirma().after(new Date())) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "La fecha no puede ser futura.", null));
+            return;
+        }
+        if (acuerdoSeleccionado.getCliente() == null || acuerdoSeleccionado.getCliente().trim().isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El cliente no puede estar vacío.", null));
+            return;
+        }
+
+        // Guardar o actualizar
+        if (modoEdicion) {
+            acuerdoService.actualizar(acuerdoSeleccionado);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo actualizado.", null));
+        } else {
+            acuerdoService.guardar(acuerdoSeleccionado);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Acuerdo guardado.", null));
+        }
+        acuerdos = null; // Recarga lista
+    }
+
+    // Getters y setters restantes
     public Acuerdo getAcuerdo() {
         return acuerdo;
     }
@@ -88,8 +165,8 @@ public class AcuerdoBean implements Serializable {
 
     public void setProyectoSeleccionado(Proyecto proyectoSeleccionado) {
         this.proyectoSeleccionado = proyectoSeleccionado;
-        if (this.acuerdo != null) {
-            this.acuerdo.setProyecto(proyectoSeleccionado);
+        if (this.acuerdoSeleccionado != null) {
+            this.acuerdoSeleccionado.setProyecto(proyectoSeleccionado);
         }
     }
 }

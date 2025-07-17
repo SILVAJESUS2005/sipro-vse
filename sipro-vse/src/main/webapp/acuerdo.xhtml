@@ -12,14 +12,16 @@
             <p:growl id="growl" showDetail="true" />
 
             <p:panel header="Acuerdos" style="margin-bottom:20px;">
+                <!-- Botón Nuevo Acuerdo -->
                 <p:commandButton value="Nuevo Acuerdo"
                                  icon="pi pi-plus"
                                  actionListener="#{acuerdoBean.nuevo}"
                                  update=":formAcuerdo:acuerdoDialog"
-                                 onclick="PF('dlgAcuerdo').show();"
+                                 oncomplete="PF('dlgAcuerdo').show();"
                                  styleClass="ui-button-success" />
             </p:panel>
 
+            <!-- Tabla de acuerdos -->
             <p:dataTable value="#{acuerdoBean.acuerdos}" var="a" paginator="true" rows="10">
                 <p:column headerText="Proyecto">
                     #{a.proyecto.nombre}
@@ -33,11 +35,13 @@
                     #{a.cliente}
                 </p:column>
                 <p:column headerText="Acciones" style="width:170px;">
+                    <!-- Botón Editar -->
                     <p:commandButton icon="pi pi-pencil" title="Editar"
                                      actionListener="#{acuerdoBean.editar(a)}"
                                      update=":formAcuerdo:acuerdoDialog"
                                      oncomplete="PF('dlgAcuerdo').show();"
                                      styleClass="ui-button-warning" />
+                    <!-- Botón Eliminar -->
                     <p:commandButton icon="pi pi-trash" title="Eliminar"
                                      actionListener="#{acuerdoBean.prepararEliminar(a)}"
                                      update=":formAcuerdo:confirmDialog"
@@ -46,8 +50,9 @@
                 </p:column>
             </p:dataTable>
 
-            <!-- Dialogo para agregar/editar -->
-            <p:dialog id="acuerdoDialog" widgetVar="dlgAcuerdo" modal="true" header="#{acuerdoBean.modoEdicion ? 'Editar Acuerdo' : 'Nuevo Acuerdo'}"
+            <!-- Diálogo para agregar/editar -->
+            <p:dialog id="acuerdoDialog" widgetVar="dlgAcuerdo" modal="true"
+                      header="#{acuerdoBean.modoEdicion ? 'Editar Acuerdo' : 'Nuevo Acuerdo'}"
                       resizable="false" width="600">
                 <h:panelGrid columns="2" cellpadding="6" style="width:100%;">
                     <h:outputLabel for="proyecto" value="Proyecto:" />
@@ -55,18 +60,21 @@
                                      value="#{acuerdoBean.acuerdoSeleccionado.proyecto}"
                                      converter="proyectoConverter" required="true" style="width:100%">
                         <f:selectItem itemLabel="Seleccione un proyecto" itemValue="#{null}" noSelectionOption="true" />
-                        <f:selectItems value="#{acuerdoBean.proyectosDisponibles}"
-                                       var="p" itemLabel="#{p.nombre}" itemValue="#{p}" />
+                        <f:selectItems value="#{acuerdoBean.proyectosDisponibles}" var="p"
+                                       itemLabel="#{p.nombre}" itemValue="#{p}" />
                     </p:selectOneMenu>
 
-                    <h:outputLabel for="nombreProyecto" value="Nombre del proyecto (acuerdo):" />
-                    <p:inputText id="nombreProyecto" value="#{acuerdoBean.acuerdoSeleccionado.nombreProyecto}" required="true" maxlength="150" style="width:100%;" />
+                    <h:outputLabel for="nombreAcuerdo" value="Nombre del acuerdo:" />
+                    <p:inputText id="nombreAcuerdo" value="#{acuerdoBean.acuerdoSeleccionado.nombreProyecto}" required="true" style="width:100%;" />
 
                     <h:outputLabel for="fechaFirma" value="Fecha de firma:" />
-                    <p:calendar id="fechaFirma" value="#{acuerdoBean.acuerdoSeleccionado.fechaFirma}" pattern="yyyy-MM-dd" mask="true" navigator="true" showButtonPanel="true" style="width:100%;" />
-
+                    <p:calendar id="fechaFirma"
+                                value="#{acuerdoBean.acuerdoSeleccionado.fechaFirma}"
+                                pattern="yyyy-MM-dd"
+                                required="true"
+                                showButtonPanel="true" />s
                     <h:outputLabel for="cliente" value="Cliente:" />
-                    <p:inputText id="cliente" value="#{acuerdoBean.acuerdoSeleccionado.cliente}" maxlength="100" style="width:100%;" />
+                    <p:inputText id="cliente" value="#{acuerdoBean.acuerdoSeleccionado.cliente}" required="true" style="width:100%;" />
 
                     <h:outputLabel for="entregables" value="Entregables contratados:" />
                     <p:inputTextarea id="entregables" value="#{acuerdoBean.acuerdoSeleccionado.entregablesContratados}" autoResize="true" rows="3" style="width:100%;" />
@@ -84,7 +92,7 @@
                 </f:facet>
             </p:dialog>
 
-            <!-- Dialogo de confirmacion para eliminar -->
+            <!-- Diálogo de confirmación para eliminar -->
             <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" header="Eliminar acuerdo">
                 ¿Estás seguro de eliminar este acuerdo?
                 <p:commandButton value="Sí, eliminar" actionListener="#{acuerdoBean.eliminar}"
