@@ -4,11 +4,15 @@ import jakarta.faces.convert.FacesConverter;
 import jakarta.faces.convert.Converter;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.component.UIComponent;
-import controlador.AcuerdoBean;
+import jakarta.inject.Inject;
 import modelo.Proyecto;
+import modelo.servicio.ProyectoService;
 
-@FacesConverter(value = "proyectoConverter")
+@FacesConverter(value = "proyectoConverter", managed = true)
 public class ProyectoConverter implements Converter<Proyecto> {
+
+    @Inject
+    private ProyectoService proyectoService;
 
     @Override
     public Proyecto getAsObject(FacesContext context, UIComponent component, String value) {
@@ -17,9 +21,7 @@ public class ProyectoConverter implements Converter<Proyecto> {
         }
         try {
             int id = Integer.parseInt(value);
-            AcuerdoBean bean = context.getApplication()
-                    .evaluateExpressionGet(context, "#{acuerdoBean}", AcuerdoBean.class);
-            return bean.buscarProyectoPorId(id);
+            return proyectoService.buscarPorId(id);
         } catch (NumberFormatException e) {
             return null;
         }

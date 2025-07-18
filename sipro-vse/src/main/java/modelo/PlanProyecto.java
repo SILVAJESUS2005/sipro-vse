@@ -1,6 +1,8 @@
 package modelo;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import modelo.enums.EstadoPlan;
 
@@ -12,24 +14,58 @@ public class PlanProyecto {
     private int ID_Plan;
 
     @ManyToOne
+    @NotNull(message = "El proyecto es obligatorio")
     private Proyecto proyecto;
 
     @Lob
+    @Size(max = 2000, message = "La descripción del sistema no puede exceder 2000 caracteres")
     private String descripcionSistema;
+    
     @Lob
+    @Size(max = 2000, message = "El alcance no puede exceder 2000 caracteres")
     private String alcance;
+    
     @Lob
+    @NotNull(message = "Los objetivos son obligatorios")
+    @Size(max = 2000, message = "Los objetivos no pueden exceder 2000 caracteres")
     private String objetivos;
+    
+    @Size(max = 500, message = "El ciclo de vida no puede exceder 500 caracteres")
     private String cicloVida;
+    
+    @Size(max = 500, message = "La estrategia de gestión de versiones no puede exceder 500 caracteres")
     private String estrategiaGestionVersiones;
+    
+    @Size(max = 1000, message = "La composición del equipo no puede exceder 1000 caracteres")
     private String composicionEquipo;
+    
+    @Lob
+    @Size(max = 2000, message = "Los hitos no pueden exceder 2000 caracteres")
     private String hitos;
+    
+    @Lob
+    @Size(max = 2000, message = "Los riesgos no pueden exceder 2000 caracteres")
     private String riesgos;
+
+    // Nuevos campos para PM.BP2.D2
+    @Lob
+    @Size(max = 2000, message = "El cronograma no puede exceder 2000 caracteres")
+    private String cronograma;
+
+    @Size(max = 1000, message = "Los responsables no pueden exceder 1000 caracteres")
+    private String responsables;
+
+    @Lob
+    @Size(max = 2000, message = "Los recursos no pueden exceder 2000 caracteres")
+    private String recursos;
+
+    @Temporal(TemporalType.DATE)
     private Date fechaAprobacion;
 
     @Enumerated(EnumType.STRING)
     private EstadoPlan estado;
 
+    // Getters y Setters
     public int getID_Plan() {
         return ID_Plan;
     }
@@ -110,6 +146,30 @@ public class PlanProyecto {
         this.riesgos = riesgos;
     }
 
+    public String getCronograma() {
+        return cronograma;
+    }
+
+    public void setCronograma(String cronograma) {
+        this.cronograma = cronograma;
+    }
+
+    public String getResponsables() {
+        return responsables;
+    }
+
+    public void setResponsables(String responsables) {
+        this.responsables = responsables;
+    }
+
+    public String getRecursos() {
+        return recursos;
+    }
+
+    public void setRecursos(String recursos) {
+        this.recursos = recursos;
+    }
+
     public Date getFechaAprobacion() {
         return fechaAprobacion;
     }
@@ -125,5 +185,4 @@ public class PlanProyecto {
     public void setEstado(EstadoPlan estado) {
         this.estado = estado;
     }
-
 }

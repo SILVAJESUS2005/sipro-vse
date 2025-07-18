@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Gestión de Proyectos - SIPRO VSE</title>
+</h:head>
+<h:body>
+    <h:form id="formProyecto">
+        <p:growl id="growl" showDetail="true" />
+
+        <!-- Panel de Proyectos -->
+        <p:panel header="Gestión de Proyectos" style="margin-bottom:20px;">
+            <p:commandButton value="Nuevo Proyecto"
+                             icon="pi pi-plus"
+                             actionListener="#{proyectoBean.nuevo}"
+                             update=":formProyecto:proyectoDialog"
+                             oncomplete="PF('dlgProyecto').show();"
+                             styleClass="ui-button-success" />
+        </p:panel>
+
+        <p:dataTable value="#{proyectoBean.proyectos}" var="p" paginator="true" rows="10"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     rowsPerPageTemplate="5,10,15">
+            <p:column headerText="Nombre" sortBy="#{p.nombre}" filterBy="#{p.nombre}">
+                #{p.nombre}
+            </p:column>
+            <p:column headerText="Cliente" sortBy="#{p.cliente}" filterBy="#{p.cliente}">
+                #{p.cliente}
+            </p:column>
+            <p:column headerText="Estado" sortBy="#{p.estado}">
+                <p:tag value="#{p.estado}" 
+                       severity="#{p.estado == 'ACTIVO' ? 'success' : p.estado == 'COMPLETADO' ? 'info' : p.estado == 'CANCELADO' ? 'danger' : 'warning'}" />
+            </p:column>
+            <p:column headerText="Fecha Inicio">
+                <h:outputText value="#{p.fechaInicio}">
+                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="Fecha Fin">
+                <h:outputText value="#{p.fechaFin}">
+                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="Responsable">
+                #{p.responsable.nombre}
+            </p:column>
+            <p:column headerText="Acciones" style="width:170px;">
+                <p:commandButton icon="pi pi-pencil" title="Editar"
+                                 actionListener="#{proyectoBean.editar(p)}"
+                                 update=":formProyecto:proyectoDialog"
+                                 oncomplete="PF('dlgProyecto').show();"
+                                 styleClass="ui-button-warning" />
+                <p:commandButton icon="pi pi-trash" title="Eliminar"
+                                 actionListener="#{proyectoBean.prepararEliminar(p)}"
+                                 update=":formProyecto:confirmDialog"
+                                 oncomplete="PF('confirmDialog').show();"
+                                 styleClass="ui-button-danger" />
+            </p:column>
+        </p:dataTable>
+
+        <!-- Diálogo para agregar/editar Proyecto -->
+        <p:dialog id="proyectoDialog" header="#{proyectoBean.modoEdicion ? 'Editar' : 'Nuevo'} Proyecto"
+                  widgetVar="dlgProyecto" modal="true" resizable="false" width="600">
+            <p:messages id="messages"/>
+            
+            <h:panelGrid columns="2" cellpadding="5">
+                <h:outputLabel for="nombre" value="Nombre:" />
+                <p:inputText id="nombre" value="#{proyectoBean.proyectoSeleccionado.nombre}"
+                           required="true" requiredMessage="El nombre es obligatorio"
+                           validatorMessage="El nombre debe tener entre 3 y 100 caracteres">
+                    <f:validateLength minimum="3" maximum="100"/>
+                </p:inputText>
+
+                <h:outputLabel for="cliente" value="Cliente:" />
+                <p:inputText id="cliente" value="#{proyectoBean.proyectoSeleccionado.cliente}"
+                           required="true" requiredMessage="El cliente es obligatorio"
+                           validatorMessage="El cliente debe tener entre 2 y 100 caracteres">
+                    <f:validateLength minimum="2" maximum="100"/>
+                </p:inputText>
+
+                <h:outputLabel for="descripcion" value="Descripción:" />
+                <p:inputTextarea id="descripcion" value="#{proyectoBean.proyectoSeleccionado.descripcion}"
+                               rows="3" cols="50" maxlength="1000"/>
+
+                <h:outputLabel for="fechaInicio" value="Fecha Inicio:" />
+                <p:calendar id="fechaInicio" value="#{proyectoBean.proyectoSeleccionado.fechaInicio}"
+                          pattern="yyyy-MM-dd" showOn="button"/>
+
+                <h:outputLabel for="fechaFin" value="Fecha Fin:" />
+                <p:calendar id="fechaFin" value="#{proyectoBean.proyectoSeleccionado.fechaFin}"
+                          pattern="yyyy-MM-dd" showOn="button"/>
+
+                <h:outputLabel for="estado" value="Estado:" />
+                <p:selectOneMenu id="estado" value="#{proyectoBean.proyectoSeleccionado.estado}">
+                    <f:selectItem itemLabel="Seleccione un estado" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{proyectoBean.estadosProyecto}" var="estado"
+                                 itemLabel="#{estado}" itemValue="#{estado}"/>
+                </p:selectOneMenu>
+
+                <h:outputLabel for="responsable" value="Responsable:" />
+                <p:selectOneMenu id="responsable" value="#{proyectoBean.proyectoSeleccionado.responsable}"
+                               converter="miembroConverter">
+                    <f:selectItem itemLabel="Seleccione un responsable" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{proyectoBean.miembros}" var="miembro"
+                                 itemLabel="#{miembro.nombre}" itemValue="#{miembro}"/>
+                </p:selectOneMenu>
+            </h:panelGrid>
+
+            <f:facet name="footer">
+                <p:commandButton value="Cancelar" icon="pi pi-times"
+                               onclick="PF('dlgProyecto').hide()" type="button"
+                               styleClass="ui-button-secondary"/>
+                <p:commandButton value="Guardar" icon="pi pi-check"
+                               actionListener="#{proyectoBean.guardarOActualizar}"
+                               update="formProyecto:growl,formProyecto:proyectoDialog,formProyecto:messages"
+                               oncomplete="if (args.validationFailed) { return; } PF('dlgProyecto').hide();"
+                               styleClass="ui-button-success"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- Diálogo de confirmación para eliminar -->
+        <p:confirmDialog id="confirmDialog" header="Confirmar eliminación"
+                        message="¿Está seguro de que desea eliminar este proyecto?"
+                        widgetVar="confirmDialog">
+            <p:commandButton value="Sí" icon="pi pi-check"
+                           actionListener="#{proyectoBean.eliminar}"
+                           update="formProyecto:growl"
+                           oncomplete="PF('confirmDialog').hide();"
+                           styleClass="ui-button-danger"/>
+            <p:commandButton value="No" icon="pi pi-times"
+                           onclick="PF('confirmDialog').hide()" type="button"
+                           styleClass="ui-button-secondary"/>
+        </p:confirmDialog>
+    </h:form>
+</h:body>
+</html>

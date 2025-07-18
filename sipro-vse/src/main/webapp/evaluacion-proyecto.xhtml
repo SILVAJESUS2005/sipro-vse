@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Evaluación y Seguimiento (PM.BP4.D3) - SIPRO VSE</title>
+</h:head>
+<h:body>
+    <h:form id="formEvaluacion">
+        <p:growl id="growl" showDetail="true" />
+
+        <!-- Panel de Evaluaciones -->
+        <p:panel header="Evaluación y Seguimiento del Proyecto (PM.BP4.D3)" style="margin-bottom:20px;">
+            <p:panelGrid columns="3" cellpadding="5">
+                <h:outputLabel value="Filtrar por Proyecto:" />
+                <p:selectOneMenu value="#{evaluacionProyectoBean.proyectoFiltro}"
+                               converter="proyectoConverter">
+                    <f:selectItem itemLabel="Todos los proyectos" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{evaluacionProyectoBean.proyectos}" var="proyecto"
+                                 itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                    <p:ajax listener="#{evaluacionProyectoBean.filtrarPorProyecto}" update="evaluacionesTable"/>
+                </p:selectOneMenu>
+                <p:commandButton value="Nueva Evaluación"
+                               icon="pi pi-plus"
+                               actionListener="#{evaluacionProyectoBean.nuevo}"
+                               update=":formEvaluacion:evaluacionDialog"
+                               oncomplete="PF('dlgEvaluacion').show();"
+                               styleClass="ui-button-success" />
+            </p:panelGrid>
+        </p:panel>
+
+        <p:dataTable id="evaluacionesTable" value="#{evaluacionProyectoBean.evaluaciones}" var="eval" paginator="true" rows="10"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     rowsPerPageTemplate="5,10,15">
+            <p:column headerText="Proyecto" sortBy="#{eval.proyecto.nombre}">
+                #{eval.proyecto.nombre}
+            </p:column>
+            <p:column headerText="Fecha" sortBy="#{eval.fecha}">
+                <h:outputText value="#{eval.fecha}">
+                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="Evaluador" sortBy="#{eval.evaluador.nombre}">
+                #{eval.evaluador.nombre}
+            </p:column>
+            <p:column headerText="% Avance" sortBy="#{eval.porcentajeAvance}">
+                <p:progressBar value="#{eval.porcentajeAvance}" 
+                             labelTemplate="{value}%" 
+                             style="width:100px;height:20px;" />
+            </p:column>
+            <p:column headerText="Resultado" style="max-width:150px;">
+                <h:outputText value="#{eval.resultado}" escape="false" 
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; display: block;"/>
+            </p:column>
+            <p:column headerText="Acciones" style="width:170px;">
+                <p:commandButton icon="pi pi-pencil" title="Editar"
+                                 actionListener="#{evaluacionProyectoBean.editar(eval)}"
+                                 update=":formEvaluacion:evaluacionDialog"
+                                 oncomplete="PF('dlgEvaluacion').show();"
+                                 styleClass="ui-button-warning" />
+                <p:commandButton icon="pi pi-trash" title="Eliminar"
+                                 actionListener="#{evaluacionProyectoBean.prepararEliminar(eval)}"
+                                 update=":formEvaluacion:confirmDialog"
+                                 oncomplete="PF('confirmDialog').show();"
+                                 styleClass="ui-button-danger" />
+            </p:column>
+        </p:dataTable>
+
+        <!-- Diálogo para agregar/editar Evaluación -->
+        <p:dialog id="evaluacionDialog" header="#{evaluacionProyectoBean.modoEdicion ? 'Editar' : 'Nueva'} Evaluación"
+                  widgetVar="dlgEvaluacion" modal="true" resizable="false" width="700" height="600">
+            <p:messages id="messages"/>
+            
+            <p:tabView>
+                <p:tab title="Información General">
+                    <h:panelGrid columns="2" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="proyecto" value="Proyecto:" />
+                        <p:selectOneMenu id="proyecto" value="#{evaluacionProyectoBean.evaluacionSeleccionada.proyecto}"
+                                       converter="proyectoConverter" required="true">
+                            <f:selectItem itemLabel="Seleccione un proyecto" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{evaluacionProyectoBean.proyectos}" var="proyecto"
+                                         itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                        </p:selectOneMenu>
+
+                        <h:outputLabel for="evaluador" value="Evaluador:" />
+                        <p:selectOneMenu id="evaluador" value="#{evaluacionProyectoBean.evaluacionSeleccionada.evaluador}"
+                                       converter="miembroConverter" required="true">
+                            <f:selectItem itemLabel="Seleccione un evaluador" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{evaluacionProyectoBean.miembros}" var="miembro"
+                                         itemLabel="#{miembro.nombre}" itemValue="#{miembro}"/>
+                        </p:selectOneMenu>
+
+                        <h:outputLabel for="fecha" value="Fecha de Evaluación:" />
+                        <p:calendar id="fecha" value="#{evaluacionProyectoBean.evaluacionSeleccionada.fecha}"
+                                  pattern="yyyy-MM-dd" showOn="button" required="true"/>
+
+                        <h:outputLabel for="porcentajeAvance" value="Porcentaje de Avance (%):" />
+                        <p:inputNumber id="porcentajeAvance" value="#{evaluacionProyectoBean.evaluacionSeleccionada.porcentajeAvance}"
+                                     minValue="0" maxValue="100" decimalPlaces="1" symbol="%" symbolPosition="s"
+                                     validatorMessage="El porcentaje debe estar entre 0 y 100"/>
+                    </h:panelGrid>
+                </p:tab>
+
+                <p:tab title="Resultados y Hallazgos">
+                    <h:panelGrid columns="1" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="resultado" value="Resultado:" />
+                        <p:inputTextarea id="resultado" value="#{evaluacionProyectoBean.evaluacionSeleccionada.resultado}"
+                                       rows="4" cols="80" maxlength="500"/>
+
+                        <h:outputLabel for="hallazgos" value="Hallazgos:" />
+                        <p:inputTextarea id="hallazgos" value="#{evaluacionProyectoBean.evaluacionSeleccionada.hallazgos}"
+                                       rows="5" cols="80" maxlength="1000"/>
+
+                        <h:outputLabel for="comentarios" value="Comentarios:" />
+                        <p:inputTextarea id="comentarios" value="#{evaluacionProyectoBean.evaluacionSeleccionada.comentarios}"
+                                       rows="4" cols="80" maxlength="1000"/>
+                    </h:panelGrid>
+                </p:tab>
+
+                <p:tab title="Riesgos">
+                    <h:panelGrid columns="1" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="riesgos" value="Riesgos Identificados:" />
+                        <p:inputTextarea id="riesgos" value="#{evaluacionProyectoBean.evaluacionSeleccionada.riesgos}"
+                                       rows="6" cols="80" maxlength="1000"/>
+                    </h:panelGrid>
+                </p:tab>
+            </p:tabView>
+
+            <f:facet name="footer">
+                <p:commandButton value="Cancelar" icon="pi pi-times"
+                               onclick="PF('dlgEvaluacion').hide()" type="button"
+                               styleClass="ui-button-secondary"/>
+                <p:commandButton value="Guardar" icon="pi pi-check"
+                               actionListener="#{evaluacionProyectoBean.guardarOActualizar}"
+                               update="formEvaluacion:growl,formEvaluacion:evaluacionDialog,formEvaluacion:messages,formEvaluacion:evaluacionesTable"
+                               oncomplete="if (args.validationFailed) { return; } PF('dlgEvaluacion').hide();"
+                               styleClass="ui-button-success"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- Diálogo de confirmación para eliminar -->
+        <p:confirmDialog id="confirmDialog" header="Confirmar eliminación"
+                        message="¿Está seguro de que desea eliminar esta evaluación?"
+                        widgetVar="confirmDialog">
+            <p:commandButton value="Sí" icon="pi pi-check"
+                           actionListener="#{evaluacionProyectoBean.eliminar}"
+                           update="formEvaluacion:growl,formEvaluacion:evaluacionesTable"
+                           oncomplete="PF('confirmDialog').hide();"
+                           styleClass="ui-button-danger"/>
+            <p:commandButton value="No" icon="pi pi-times"
+                           onclick="PF('confirmDialog').hide()" type="button"
+                           styleClass="ui-button-secondary"/>
+        </p:confirmDialog>
+    </h:form>
+</h:body>
+</html>
