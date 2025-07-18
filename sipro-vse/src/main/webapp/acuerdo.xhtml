@@ -82,7 +82,9 @@
             <f:facet name="footer">
                 <p:commandButton value="#{acuerdoBean.modoEdicion ? 'Guardar cambios' : 'Guardar'}"
                                  actionListener="#{acuerdoBean.guardarOActualizar}"
-                                 update=":formAcuerdo"
+                                 update=":formAcuerdo:growl,:formAcuerdo"
+                                 process="@form"
+                                 oncomplete="if (!args.validationFailed) PF('dlgAcuerdo').hide();"
                                  styleClass="ui-button-success" />
                 <p:commandButton value="Cancelar" onclick="PF('dlgAcuerdo').hide();" type="button" styleClass="ui-button-secondary" />
             </f:facet>
@@ -92,61 +94,8 @@
         <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" header="Eliminar acuerdo">
             ¿Estás seguro de eliminar este acuerdo?
             <p:commandButton value="Sí, eliminar" actionListener="#{acuerdoBean.eliminar}"
-                             update=":formAcuerdo" oncomplete="PF('confirmDialog').hide();" styleClass="ui-button-danger" />
+                             update=":formAcuerdo:growl,:formAcuerdo" oncomplete="PF('confirmDialog').hide();" styleClass="ui-button-danger" />
             <p:commandButton value="Cancelar" onclick="PF('confirmDialog').hide();" type="button" styleClass="ui-button-secondary" />
-        </p:confirmDialog>
-
-        <!-- Panel de Proyectos CRUD -->
-        <p:panel header="Gestión de Proyectos" style="margin-top:40px;">
-            <p:commandButton value="Nuevo Proyecto"
-                             icon="pi pi-plus"
-                             actionListener="#{proyectoBean.nuevo}"
-                             update=":formAcuerdo:proyectoDialog"
-                             oncomplete="PF('dlgProyecto').show();"
-                             styleClass="ui-button-success" />
-
-            <p:dataTable value="#{proyectoBean.proyectos}" var="proy" paginator="true" rows="10" style="margin-top:20px;">
-                <p:column headerText="Nombre">
-                    #{proy.nombre}
-                </p:column>
-                <p:column headerText="Acciones" style="width:170px;">
-                    <p:commandButton icon="pi pi-pencil" title="Editar"
-                                     actionListener="#{proyectoBean.editar(proy)}"
-                                     update=":formAcuerdo:proyectoDialog"
-                                     oncomplete="PF('dlgProyecto').show();"
-                                     styleClass="ui-button-warning" />
-                    <p:commandButton icon="pi pi-trash" title="Eliminar"
-                                     actionListener="#{proyectoBean.prepararEliminar(proy)}"
-                                     update=":formAcuerdo:confirmProyectoDialog"
-                                     oncomplete="PF('confirmProyectoDialog').show();"
-                                     styleClass="ui-button-danger" />
-                </p:column>
-            </p:dataTable>
-        </p:panel>
-
-        <!-- Diálogo para agregar/editar Proyecto -->
-        <p:dialog id="proyectoDialog" widgetVar="dlgProyecto" modal="true"
-                  header="#{proyectoBean.modoEdicion ? 'Editar Proyecto' : 'Nuevo Proyecto'}"
-                  resizable="false" width="450">
-            <h:panelGrid columns="2" style="width:100%;margin-bottom:20px;" cellpadding="8">
-                <h:outputLabel for="nombreProyecto" value="Nombre:" style="font-weight:bold;" />
-                <p:inputText id="nombreProyecto" value="#{proyectoBean.proyectoSeleccionado.nombre}" required="true" style="width:100%;" />
-            </h:panelGrid>
-            <f:facet name="footer">
-                <p:commandButton value="#{proyectoBean.modoEdicion ? 'Guardar cambios' : 'Guardar'}"
-                                 actionListener="#{proyectoBean.guardarOActualizar}"
-                                 update=":formAcuerdo"
-                                 styleClass="ui-button-success" />
-                <p:commandButton value="Cancelar" onclick="PF('dlgProyecto').hide();" type="button" styleClass="ui-button-secondary" />
-            </f:facet>
-        </p:dialog>
-
-        <!-- Diálogo de confirmación para eliminar Proyecto -->
-        <p:confirmDialog id="confirmProyectoDialog" widgetVar="confirmProyectoDialog" header="Eliminar proyecto">
-            ¿Estás seguro de eliminar este proyecto?
-            <p:commandButton value="Sí, eliminar" actionListener="#{proyectoBean.eliminar}"
-                             update=":formAcuerdo" oncomplete="PF('confirmProyectoDialog').hide();" styleClass="ui-button-danger" />
-            <p:commandButton value="Cancelar" onclick="PF('confirmProyectoDialog').hide();" type="button" styleClass="ui-button-secondary" />
         </p:confirmDialog>
     </h:form>
 </h:body>
