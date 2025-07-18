@@ -19,8 +19,26 @@ public class ProyectoService {
         return query.getResultList();
     }
 
-    // Puedes agregar otros métodos según tus necesidades, como buscar por ID, guardar, eliminar, etc.
+    // Buscar proyecto por ID
     public Proyecto buscarPorId(int id) {
         return em.find(Proyecto.class, id);
+    }
+
+    // Guardar un nuevo proyecto
+    public void guardar(Proyecto proyecto) {
+        em.persist(proyecto);
+    }
+
+    // Actualizar un proyecto existente
+    public void actualizar(Proyecto proyecto) {
+        em.merge(proyecto);
+    }
+
+    // Eliminar un proyecto
+    public void eliminar(Proyecto proyecto) {
+        Proyecto p = em.find(Proyecto.class, proyecto.getID_Proyecto());
+        if (p != null) {
+            em.remove(p);
+        }
     }
 }
