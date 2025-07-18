@@ -24,9 +24,7 @@ public class ProyectoBean implements Serializable {
 
     // Listar proyectos
     public List<Proyecto> getProyectos() {
-        if (proyectos == null) {
-            proyectos = proyectoService.obtenerTodos();
-        }
+        proyectos = proyectoService.obtenerTodos();
         return proyectos;
     }
 
@@ -38,30 +36,37 @@ public class ProyectoBean implements Serializable {
 
     // Editar proyecto
     public void editar(Proyecto proyecto) {
-        // Copia los datos para edición
         proyectoSeleccionado = new Proyecto();
         proyectoSeleccionado.setID_Proyecto(proyecto.getID_Proyecto());
         proyectoSeleccionado.setNombre(proyecto.getNombre());
-        // Si tienes más atributos, cópialos aquí
         modoEdicion = true;
     }
 
     // Guardar o actualizar proyecto
     public void guardarOActualizar() {
+        // Validar nombre vacío
         if (proyectoSeleccionado.getNombre() == null || proyectoSeleccionado.getNombre().trim().isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre del proyecto no puede estar vacío.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre del proyecto no puede estar vacío.", null));
             return;
         }
-
+        // Validar duplicado
+        for (Proyecto p : getProyectos()) {
+            if (p.getNombre().equalsIgnoreCase(proyectoSeleccionado.getNombre())
+                    && (!modoEdicion || p.getID_Proyecto() != proyectoSeleccionado.getID_Proyecto())) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ya existe un proyecto con ese nombre.", null));
+                return;
+            }
+        }
         if (modoEdicion) {
             proyectoService.actualizar(proyectoSeleccionado);
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto actualizado correctamente.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto actualizado correctamente.", null));
         } else {
             proyectoService.guardar(proyectoSeleccionado);
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto guardado correctamente.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto guardado correctamente.", null));
         }
         proyectos = null; // Recarga la lista
     }
@@ -76,7 +81,7 @@ public class ProyectoBean implements Serializable {
         if (proyectoAEliminar != null) {
             proyectoService.eliminar(proyectoAEliminar);
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto eliminado correctamente.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Proyecto eliminado correctamente.", null));
             proyectos = null; // Recarga la lista
             proyectoAEliminar = null;
         }
@@ -86,6 +91,7 @@ public class ProyectoBean implements Serializable {
     public Proyecto getProyectoSeleccionado() {
         return proyectoSeleccionado;
     }
+
     public void setProyectoSeleccionado(Proyecto proyectoSeleccionado) {
         this.proyectoSeleccionado = proyectoSeleccionado;
     }
@@ -93,6 +99,7 @@ public class ProyectoBean implements Serializable {
     public boolean isModoEdicion() {
         return modoEdicion;
     }
+
     public void setModoEdicion(boolean modoEdicion) {
         this.modoEdicion = modoEdicion;
     }

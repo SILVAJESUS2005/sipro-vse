@@ -5,12 +5,13 @@
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
 <h:head>
-    <title>CRUD de Acuerdos</title>
+    <title>Gestión de Acuerdos y Proyectos</title>
 </h:head>
 <h:body>
     <h:form id="formAcuerdo">
         <p:growl id="growl" showDetail="true" />
 
+        <!-- Panel de Acuerdos -->
         <p:panel header="Acuerdos" style="margin-bottom:20px;">
             <p:commandButton value="Nuevo Acuerdo"
                              icon="pi pi-plus"
@@ -46,7 +47,7 @@
             </p:column>
         </p:dataTable>
 
-        <!-- Diálogo para agregar/editar -->
+        <!-- Diálogo para agregar/editar Acuerdo -->
         <p:dialog id="acuerdoDialog" widgetVar="dlgAcuerdo" modal="true"
                   header="#{acuerdoBean.modoEdicion ? 'Editar Acuerdo' : 'Nuevo Acuerdo'}"
                   resizable="false" width="650">
@@ -87,7 +88,7 @@
             </f:facet>
         </p:dialog>
 
-        <!-- Diálogo de confirmación para eliminar -->
+        <!-- Diálogo de confirmación para eliminar Acuerdo -->
         <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" header="Eliminar acuerdo">
             ¿Estás seguro de eliminar este acuerdo?
             <p:commandButton value="Sí, eliminar" actionListener="#{acuerdoBean.eliminar}"

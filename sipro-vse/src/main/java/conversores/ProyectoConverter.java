@@ -12,11 +12,13 @@ public class ProyectoConverter implements Converter<Proyecto> {
 
     @Override
     public Proyecto getAsObject(FacesContext context, UIComponent component, String value) {
-        if (value == null || value.isEmpty()) return null;
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
         try {
             int id = Integer.parseInt(value);
             AcuerdoBean bean = context.getApplication()
-                .evaluateExpressionGet(context, "#{acuerdoBean}", AcuerdoBean.class);
+                    .evaluateExpressionGet(context, "#{acuerdoBean}", AcuerdoBean.class);
             return bean.buscarProyectoPorId(id);
         } catch (NumberFormatException e) {
             return null;

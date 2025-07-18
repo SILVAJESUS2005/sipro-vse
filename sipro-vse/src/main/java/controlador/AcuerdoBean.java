@@ -22,18 +22,23 @@ public class AcuerdoBean implements Serializable {
     private Acuerdo acuerdoAEliminar;
     private List<Acuerdo> acuerdos;
     private List<Proyecto> proyectosDisponibles;
-
     private Proyecto proyectoSeleccionado;
     private boolean modoEdicion = false;
 
     @Inject
     private AcuerdoService acuerdoService;
+
     @Inject
-    private ProyectoService proyectoService; // Asegúrate de tener este servicio
+    private ProyectoService proyectoService;
 
     public List<Acuerdo> getAcuerdos() {
         acuerdos = acuerdoService.obtenerTodos();
         return acuerdos;
+    }
+
+    public List<Proyecto> getProyectosDisponibles() {
+        proyectosDisponibles = proyectoService.obtenerTodos();
+        return proyectosDisponibles;
     }
 
     public boolean isModoEdicion() {
@@ -48,16 +53,13 @@ public class AcuerdoBean implements Serializable {
         this.acuerdoSeleccionado = acuerdoSeleccionado;
     }
 
-    // Nuevo acuerdo
     public void nuevo() {
         acuerdoSeleccionado = new Acuerdo();
         modoEdicion = false;
     }
 
-    // Editar acuerdo
     public void editar(Acuerdo acuerdo) {
         acuerdoSeleccionado = new Acuerdo();
-        // Copia los datos para edición
         acuerdoSeleccionado.setIdAcuerdo(acuerdo.getIdAcuerdo());
         acuerdoSeleccionado.setNombreProyecto(acuerdo.getNombreProyecto());
         acuerdoSeleccionado.setFechaFirma(acuerdo.getFechaFirma());
@@ -68,29 +70,10 @@ public class AcuerdoBean implements Serializable {
         modoEdicion = true;
     }
 
-    // Prepara acuerdo para eliminar
     public void prepararEliminar(Acuerdo acuerdo) {
         acuerdoAEliminar = acuerdo;
     }
 
-    public List<Proyecto> getProyectosDisponibles() {
-        if (proyectosDisponibles == null) {
-            proyectosDisponibles = proyectoService.obtenerTodos();
-        }
-        return proyectosDisponibles;
-    }
-
-    // Si necesitas buscar un proyecto por ID para el converter:
-    public Proyecto buscarProyectoPorId(int id) {
-        for (Proyecto p : getProyectosDisponibles()) {
-            if (p.getID_Proyecto() == id) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    // Elimina acuerdo seleccionado
     public void eliminar() {
         if (acuerdoAEliminar != null) {
             acuerdoService.eliminar(acuerdoAEliminar);
@@ -101,9 +84,7 @@ public class AcuerdoBean implements Serializable {
         }
     }
 
-    // Guarda o actualiza acuerdo según modo
     public void guardarOActualizar() {
-        // Validaciones igual que guardarAcuerdo
         if (acuerdoSeleccionado.getProyecto() == null) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Debes seleccionar un proyecto.", null));
@@ -115,7 +96,6 @@ public class AcuerdoBean implements Serializable {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "El nombre no puede estar vacío.", null));
             return;
         }
-        // Si es nuevo, verifica unicidad
         if (!modoEdicion && acuerdoService.existeNombre(acuerdoSeleccionado.getNombreProyecto())) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ya existe un acuerdo con ese nombre.", null));
@@ -137,7 +117,6 @@ public class AcuerdoBean implements Serializable {
             return;
         }
 
-        // Guardar o actualizar
         if (modoEdicion) {
             acuerdoService.actualizar(acuerdoSeleccionado);
             FacesContext.getCurrentInstance().addMessage(null,
@@ -150,13 +129,13 @@ public class AcuerdoBean implements Serializable {
         acuerdos = null; // Recarga lista
     }
 
-    // Getters y setters restantes
-    public Acuerdo getAcuerdo() {
-        return acuerdo;
-    }
-
-    public void setAcuerdo(Acuerdo acuerdo) {
-        this.acuerdo = acuerdo;
+    public Proyecto buscarProyectoPorId(int id) {
+        for (Proyecto p : getProyectosDisponibles()) {
+            if (p.getID_Proyecto() == id) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public Proyecto getProyectoSeleccionado() {
