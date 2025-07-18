@@ -19,6 +19,7 @@
     <class>modelo.Reunion</class>
     <class>modelo.EvaluacionProyecto</class>
     <class>modelo.EntregaFinal</class>
+    <class>modelo.Documento</class>
 
     <properties>
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
