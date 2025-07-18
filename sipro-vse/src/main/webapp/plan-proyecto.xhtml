@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Plan de Proyecto (PM.BP2.D2) - SIPRO VSE</title>
+</h:head>
+<h:body>
+    <h:form id="formPlan">
+        <p:growl id="growl" showDetail="true" />
+
+        <!-- Panel de Plan de Proyectos -->
+        <p:panel header="Plan de Proyecto (PM.BP2.D2)" style="margin-bottom:20px;">
+            <p:panelGrid columns="3" cellpadding="5">
+                <h:outputLabel value="Filtrar por Proyecto:" />
+                <p:selectOneMenu value="#{planProyectoBean.proyectoFiltro}"
+                               converter="proyectoConverter">
+                    <f:selectItem itemLabel="Todos los proyectos" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{planProyectoBean.proyectos}" var="proyecto"
+                                 itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                    <p:ajax listener="#{planProyectoBean.filtrarPorProyecto}" update="planesTable"/>
+                </p:selectOneMenu>
+                <p:commandButton value="Nuevo Plan"
+                               icon="pi pi-plus"
+                               actionListener="#{planProyectoBean.nuevo}"
+                               update=":formPlan:planDialog"
+                               oncomplete="PF('dlgPlan').show();"
+                               styleClass="ui-button-success" />
+            </p:panelGrid>
+        </p:panel>
+
+        <p:dataTable id="planesTable" value="#{planProyectoBean.planes}" var="plan" paginator="true" rows="10"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     rowsPerPageTemplate="5,10,15">
+            <p:column headerText="Proyecto" sortBy="#{plan.proyecto.nombre}">
+                #{plan.proyecto.nombre}
+            </p:column>
+            <p:column headerText="Objetivos" style="max-width:200px;">
+                <h:outputText value="#{plan.objetivos}" escape="false" 
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; display: block;"/>
+            </p:column>
+            <p:column headerText="Estado" sortBy="#{plan.estado}">
+                <p:tag value="#{plan.estado}" 
+                       severity="#{plan.estado == 'Aceptado' ? 'success' : plan.estado == 'Verificado' ? 'info' : 'warning'}" />
+            </p:column>
+            <p:column headerText="Fecha Aprobación">
+                <h:outputText value="#{plan.fechaAprobacion}">
+                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="Acciones" style="width:170px;">
+                <p:commandButton icon="pi pi-pencil" title="Editar"
+                                 actionListener="#{planProyectoBean.editar(plan)}"
+                                 update=":formPlan:planDialog"
+                                 oncomplete="PF('dlgPlan').show();"
+                                 styleClass="ui-button-warning" />
+                <p:commandButton icon="pi pi-trash" title="Eliminar"
+                                 actionListener="#{planProyectoBean.prepararEliminar(plan)}"
+                                 update=":formPlan:confirmDialog"
+                                 oncomplete="PF('confirmDialog').show();"
+                                 styleClass="ui-button-danger" />
+            </p:column>
+        </p:dataTable>
+
+        <!-- Diálogo para agregar/editar Plan -->
+        <p:dialog id="planDialog" header="#{planProyectoBean.modoEdicion ? 'Editar' : 'Nuevo'} Plan de Proyecto"
+                  widgetVar="dlgPlan" modal="true" resizable="false" width="800" height="600">
+            <p:messages id="messages"/>
+            
+            <p:tabView>
+                <p:tab title="Información General">
+                    <h:panelGrid columns="2" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="proyecto" value="Proyecto:" />
+                        <p:selectOneMenu id="proyecto" value="#{planProyectoBean.planSeleccionado.proyecto}"
+                                       converter="proyectoConverter" required="true">
+                            <f:selectItem itemLabel="Seleccione un proyecto" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{planProyectoBean.proyectos}" var="proyecto"
+                                         itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                        </p:selectOneMenu>
+
+                        <h:outputLabel for="estado" value="Estado:" />
+                        <p:selectOneMenu id="estado" value="#{planProyectoBean.planSeleccionado.estado}">
+                            <f:selectItem itemLabel="Seleccione un estado" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{planProyectoBean.estadosPlan}" var="estado"
+                                         itemLabel="#{estado}" itemValue="#{estado}"/>
+                        </p:selectOneMenu>
+
+                        <h:outputLabel for="fechaAprobacion" value="Fecha Aprobación:" />
+                        <p:calendar id="fechaAprobacion" value="#{planProyectoBean.planSeleccionado.fechaAprobacion}"
+                                  pattern="yyyy-MM-dd" showOn="button"/>
+                    </h:panelGrid>
+                </p:tab>
+
+                <p:tab title="Contenido del Plan">
+                    <h:panelGrid columns="1" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="objetivos" value="Objetivos (Obligatorio):" />
+                        <p:inputTextarea id="objetivos" value="#{planProyectoBean.planSeleccionado.objetivos}"
+                                       rows="4" cols="80" maxlength="2000" required="true"
+                                       requiredMessage="Los objetivos son obligatorios"/>
+
+                        <h:outputLabel for="descripcionSistema" value="Descripción del Sistema:" />
+                        <p:inputTextarea id="descripcionSistema" value="#{planProyectoBean.planSeleccionado.descripcionSistema}"
+                                       rows="4" cols="80" maxlength="2000"/>
+
+                        <h:outputLabel for="alcance" value="Alcance:" />
+                        <p:inputTextarea id="alcance" value="#{planProyectoBean.planSeleccionado.alcance}"
+                                       rows="4" cols="80" maxlength="2000"/>
+
+                        <h:outputLabel for="cronograma" value="Cronograma:" />
+                        <p:inputTextarea id="cronograma" value="#{planProyectoBean.planSeleccionado.cronograma}"
+                                       rows="4" cols="80" maxlength="2000"/>
+                    </h:panelGrid>
+                </p:tab>
+
+                <p:tab title="Recursos y Equipo">
+                    <h:panelGrid columns="1" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="responsables" value="Responsables:" />
+                        <p:inputTextarea id="responsables" value="#{planProyectoBean.planSeleccionado.responsables}"
+                                       rows="3" cols="80" maxlength="1000"/>
+
+                        <h:outputLabel for="composicionEquipo" value="Composición del Equipo:" />
+                        <p:inputTextarea id="composicionEquipo" value="#{planProyectoBean.planSeleccionado.composicionEquipo}"
+                                       rows="3" cols="80" maxlength="1000"/>
+
+                        <h:outputLabel for="recursos" value="Recursos:" />
+                        <p:inputTextarea id="recursos" value="#{planProyectoBean.planSeleccionado.recursos}"
+                                       rows="4" cols="80" maxlength="2000"/>
+
+                        <h:outputLabel for="cicloVida" value="Ciclo de Vida:" />
+                        <p:inputText id="cicloVida" value="#{planProyectoBean.planSeleccionado.cicloVida}"
+                                   maxlength="500" style="width:100%"/>
+
+                        <h:outputLabel for="estrategiaVersiones" value="Estrategia de Gestión de Versiones:" />
+                        <p:inputText id="estrategiaVersiones" value="#{planProyectoBean.planSeleccionado.estrategiaGestionVersiones}"
+                                   maxlength="500" style="width:100%"/>
+                    </h:panelGrid>
+                </p:tab>
+
+                <p:tab title="Hitos y Riesgos">
+                    <h:panelGrid columns="1" cellpadding="5" style="width:100%">
+                        <h:outputLabel for="hitos" value="Hitos:" />
+                        <p:inputTextarea id="hitos" value="#{planProyectoBean.planSeleccionado.hitos}"
+                                       rows="4" cols="80" maxlength="2000"/>
+
+                        <h:outputLabel for="riesgos" value="Riesgos:" />
+                        <p:inputTextarea id="riesgos" value="#{planProyectoBean.planSeleccionado.riesgos}"
+                                       rows="4" cols="80" maxlength="2000"/>
+                    </h:panelGrid>
+                </p:tab>
+            </p:tabView>
+
+            <f:facet name="footer">
+                <p:commandButton value="Cancelar" icon="pi pi-times"
+                               onclick="PF('dlgPlan').hide()" type="button"
+                               styleClass="ui-button-secondary"/>
+                <p:commandButton value="Guardar" icon="pi pi-check"
+                               actionListener="#{planProyectoBean.guardarOActualizar}"
+                               update="formPlan:growl,formPlan:planDialog,formPlan:messages,formPlan:planesTable"
+                               oncomplete="if (args.validationFailed) { return; } PF('dlgPlan').hide();"
+                               styleClass="ui-button-success"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- Diálogo de confirmación para eliminar -->
+        <p:confirmDialog id="confirmDialog" header="Confirmar eliminación"
+                        message="¿Está seguro de que desea eliminar este plan de proyecto?"
+                        widgetVar="confirmDialog">
+            <p:commandButton value="Sí" icon="pi pi-check"
+                           actionListener="#{planProyectoBean.eliminar}"
+                           update="formPlan:growl,formPlan:planesTable"
+                           oncomplete="PF('confirmDialog').hide();"
+                           styleClass="ui-button-danger"/>
+            <p:commandButton value="No" icon="pi pi-times"
+                           onclick="PF('confirmDialog').hide()" type="button"
+                           styleClass="ui-button-secondary"/>
+        </p:confirmDialog>
+    </h:form>
+</h:body>
+</html>

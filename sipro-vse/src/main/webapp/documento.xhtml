@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Gestión de Documentos (PM.BP2.D3) - SIPRO VSE</title>
+</h:head>
+<h:body>
+    <h:form id="formDocumento" enctype="multipart/form-data">
+        <p:growl id="growl" showDetail="true" />
+
+        <!-- Panel de Documentos -->
+        <p:panel header="Gestión de Documentos del Proyecto (PM.BP2.D3)" style="margin-bottom:20px;">
+            <p:panelGrid columns="3" cellpadding="5">
+                <h:outputLabel value="Filtrar por Proyecto:" />
+                <p:selectOneMenu value="#{documentoBean.proyectoFiltro}"
+                               converter="proyectoConverter">
+                    <f:selectItem itemLabel="Todos los proyectos" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{documentoBean.proyectos}" var="proyecto"
+                                 itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                    <p:ajax listener="#{documentoBean.filtrarPorProyecto}" update="documentosTable"/>
+                </p:selectOneMenu>
+                <p:commandButton value="Subir Documento"
+                               icon="pi pi-plus"
+                               actionListener="#{documentoBean.nuevo}"
+                               update=":formDocumento:documentoDialog"
+                               oncomplete="PF('dlgDocumento').show();"
+                               styleClass="ui-button-success" />
+            </p:panelGrid>
+        </p:panel>
+
+        <p:dataTable id="documentosTable" value="#{documentoBean.documentos}" var="doc" paginator="true" rows="10"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     rowsPerPageTemplate="5,10,15">
+            <p:column headerText="Nombre" sortBy="#{doc.nombre}" filterBy="#{doc.nombre}">
+                #{doc.nombre}
+            </p:column>
+            <p:column headerText="Proyecto" sortBy="#{doc.proyecto.nombre}">
+                #{doc.proyecto.nombre}
+            </p:column>
+            <p:column headerText="Tipo" sortBy="#{doc.tipo}">
+                <p:tag value="#{doc.tipo}" 
+                       severity="#{doc.tipo == 'PDF' ? 'danger' : doc.tipo == 'WORD' ? 'info' : doc.tipo == 'EXCEL' ? 'success' : 'warning'}" />
+            </p:column>
+            <p:column headerText="Tamaño">
+                #{documentoBean.formatearTamano(doc.tamanoArchivo)}
+            </p:column>
+            <p:column headerText="Fecha Subida" sortBy="#{doc.fechaSubida}">
+                <h:outputText value="#{doc.fechaSubida}">
+                    <f:convertDateTime pattern="yyyy-MM-dd HH:mm"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="Subido por">
+                #{doc.subidoPor.nombre}
+            </p:column>
+            <p:column headerText="Acciones" style="width:170px;">
+                <p:commandButton icon="pi pi-pencil" title="Editar"
+                                 actionListener="#{documentoBean.editar(doc)}"
+                                 update=":formDocumento:documentoDialog"
+                                 oncomplete="PF('dlgDocumento').show();"
+                                 styleClass="ui-button-warning" />
+                <p:commandButton icon="pi pi-trash" title="Eliminar"
+                                 actionListener="#{documentoBean.prepararEliminar(doc)}"
+                                 update=":formDocumento:confirmDialog"
+                                 oncomplete="PF('confirmDialog').show();"
+                                 styleClass="ui-button-danger" />
+            </p:column>
+        </p:dataTable>
+
+        <!-- Diálogo para agregar/editar Documento -->
+        <p:dialog id="documentoDialog" header="#{documentoBean.modoEdicion ? 'Editar' : 'Subir'} Documento"
+                  widgetVar="dlgDocumento" modal="true" resizable="false" width="600">
+            <p:messages id="messages"/>
+            
+            <h:panelGrid columns="2" cellpadding="5">
+                <h:outputLabel for="proyecto" value="Proyecto:" />
+                <p:selectOneMenu id="proyecto" value="#{documentoBean.documentoSeleccionado.proyecto}"
+                               converter="proyectoConverter" required="true">
+                    <f:selectItem itemLabel="Seleccione un proyecto" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{documentoBean.proyectos}" var="proyecto"
+                                 itemLabel="#{proyecto.nombre}" itemValue="#{proyecto}"/>
+                </p:selectOneMenu>
+
+                <h:outputLabel for="subidoPor" value="Subido por:" />
+                <p:selectOneMenu id="subidoPor" value="#{documentoBean.documentoSeleccionado.subidoPor}"
+                               converter="miembroConverter" required="true">
+                    <f:selectItem itemLabel="Seleccione un usuario" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{documentoBean.miembros}" var="miembro"
+                                 itemLabel="#{miembro.nombre}" itemValue="#{miembro}"/>
+                </p:selectOneMenu>
+
+                <h:outputLabel for="descripcion" value="Descripción:" />
+                <p:inputTextarea id="descripcion" value="#{documentoBean.documentoSeleccionado.descripcion}"
+                               rows="3" cols="50" maxlength="500"/>
+
+                <h:outputLabel for="tipo" value="Tipo:" />
+                <p:selectOneMenu id="tipo" value="#{documentoBean.documentoSeleccionado.tipo}">
+                    <f:selectItem itemLabel="Seleccione un tipo" itemValue="" noSelectionOption="true"/>
+                    <f:selectItems value="#{documentoBean.tiposDocumento}" var="tipo"
+                                 itemLabel="#{tipo}" itemValue="#{tipo}"/>
+                </p:selectOneMenu>
+            </h:panelGrid>
+
+            <!-- File Upload Section -->
+            <p:panel header="Archivo" style="margin-top:10px;">
+                <p:fileUpload 
+                    listener="#{documentoBean.handleFileUpload}"
+                    mode="advanced" 
+                    dragDropSupport="true" 
+                    sizeLimit="10000000"
+                    allowTypes="/(\\.pdf|\\.doc|\\.docx|\\.xls|\\.xlsx|\\.jpg|\\.jpeg|\\.png|\\.gif)$/i"
+                    uploadLabel="Subir"
+                    cancelLabel="Cancelar"
+                    chooseLabel="Seleccionar Archivo"
+                    multiple="false"
+                    auto="true"
+                    update="messages"
+                    invalidSizeMessage="El archivo es muy grande (máximo 10MB)"
+                    invalidFileMessage="Tipo de archivo no permitido" />
+                
+                <p:spacer height="10px"/>
+                
+                <p:outputLabel value="Tipos permitidos: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Imágenes (.jpg, .jpeg, .png, .gif)" 
+                             style="font-size:0.9em; color:#666;"/>
+                
+                <h:panelGroup rendered="#{documentoBean.modoEdicion and not empty documentoBean.documentoSeleccionado.rutaArchivo}">
+                    <p:spacer height="10px"/>
+                    <p:outputLabel value="Archivo actual: #{documentoBean.documentoSeleccionado.nombre}" 
+                                 style="font-weight:bold; color:#2196F3;"/>
+                </h:panelGroup>
+            </p:panel>
+
+            <f:facet name="footer">
+                <p:commandButton value="Cancelar" icon="pi pi-times"
+                               onclick="PF('dlgDocumento').hide()" type="button"
+                               styleClass="ui-button-secondary"/>
+                <p:commandButton value="Guardar" icon="pi pi-check"
+                               actionListener="#{documentoBean.guardarOActualizar}"
+                               update="formDocumento:growl,formDocumento:documentoDialog,formDocumento:messages,formDocumento:documentosTable"
+                               oncomplete="if (args.validationFailed) { return; } PF('dlgDocumento').hide();"
+                               styleClass="ui-button-success"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- Diálogo de confirmación para eliminar -->
+        <p:confirmDialog id="confirmDialog" header="Confirmar eliminación"
+                        message="¿Está seguro de que desea eliminar este documento? El archivo físico también será eliminado."
+                        widgetVar="confirmDialog">
+            <p:commandButton value="Sí" icon="pi pi-check"
+                           actionListener="#{documentoBean.eliminar}"
+                           update="formDocumento:growl,formDocumento:documentosTable"
+                           oncomplete="PF('confirmDialog').hide();"
+                           styleClass="ui-button-danger"/>
+            <p:commandButton value="No" icon="pi pi-times"
+                           onclick="PF('confirmDialog').hide()" type="button"
+                           styleClass="ui-button-secondary"/>
+        </p:confirmDialog>
+    </h:form>
+</h:body>
+</html>

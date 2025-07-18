@@ -25,6 +25,7 @@ modelo/servicio/PlanProyectoService.class
 modelo/servicio/DocumentoService.class
 modelo/enums/EstadoProgreso.class
 modelo/enums/EstadoCambio.class
+conversores/MiembroConverter.class
 modelo/servicio/EvaluacionProyectoService.class
 conversores/ProyectoConverter.class
 controlador/MiembroBean.class

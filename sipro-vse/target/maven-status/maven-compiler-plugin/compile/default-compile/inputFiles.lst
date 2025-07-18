@@ -8,6 +8,7 @@
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/controlador/PlanProyectoBean.java
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/controlador/ProyectoBean.java
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/controlador/RegistroBean.java
+/home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/conversores/MiembroConverter.java
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/conversores/ProyectoConverter.java
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/modelo/Acuerdo.java
 /home/runner/work/sipro-vse/sipro-vse/sipro-vse/src/main/java/modelo/Cambio.java
